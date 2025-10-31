@@ -58,3 +58,11 @@ header {
 .timeline {
   padding: 0 0.5rem;
 }
+
+.login-form {
+  margin-top: 40px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
