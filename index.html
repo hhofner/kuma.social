@@ -12,21 +12,22 @@
 </head>
 
 <body class="container">
-    <header x-data="timeline">
-        <div class="header-left">
-            <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjqZzYkHnbzjB49RBf2rLJj1qkmQwopmpAhRfUkmi_zGKVIoARVlH6gf1dGoJ5btABcpNFJ3kjhgB-he7Cm9Q5AK0Ioz-k8vPer7o1z9CTQw7zlCFF4tLEvOwA204JupPD0aI5H78_nUF4/s1600/animal_dance_bear.png" class="header-logo" />
-            <div>
-                <h1 class="header-title">kuma.social</h1>
-                <div x-show="logged_in" class="header-status">
-                    Connected to <span x-text="instance" class="header-instance"></span>
+    <div x-data="timeline">
+        <header>
+            <div class="header-left">
+                <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjqZzYkHnbzjB49RBf2rLJj1qkmQwopmpAhRfUkmi_zGKVIoARVlH6gf1dGoJ5btABcpNFJ3kjhgB-he7Cm9Q5AK0Ioz-k8vPer7o1z9CTQw7zlCFF4tLEvOwA204JupPD0aI5H78_nUF4/s1600/animal_dance_bear.png" class="header-logo" />
+                <div>
+                    <h1 class="header-title">kuma.social</h1>
+                    <div x-show="logged_in" class="header-status">
+                        Connected to <span x-text="instance" class="header-instance"></span>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div x-show="logged_in">
-            <button @click="logout" class="logout-button">Logout</button>
-        </div>
-    </header>
-    <section x-data="timeline" class="timeline">
+            <div x-show="logged_in">
+                <button @click="logout" class="logout-button">Logout</button>
+            </div>
+        </header>
+        <section class="timeline">
         <h2>Timeline</h2>
         <div x-show="logged_in">
             <template x-for="post in posts">
@@ -61,7 +62,7 @@
             <p x-show="loading">Loading...</p>
             <button @click="load_posts" x-show="!loading">Load More</button>
         </div>
-        <div x-show="!logged_in">
+        <div x-show="!logged_in" class="login-form">
             <h3>Log in to your Mastodon instance</h3>
             <div>
                 <label>
@@ -74,7 +75,8 @@
             </div>
             <p><small>e.g. "mastodon.social", "mas.to", "fosstodon.org"</small></p>
         </div>
-    </section>
+        </section>
+    </div>
 </body>
 <script>
     document.addEventListener('alpine:init', () => {
@@ -96,10 +98,6 @@
                 } else {
                     // Check for OAuth callback
                     this.handleOAuthCallback()
-                    // If not handling callback, load demo posts
-                    if (!window.location.search.includes('code=')) {
-                        this.load_posts()
-                    }
                 }
             },
 
@@ -122,6 +120,10 @@
                 if (!this.instanceURL.trim()) return
                 try {
                     await oauth.loginToInstance(this.instanceURL.trim())
+                    this.logged_in = true
+                    this.instance = oauth.getCurrentInstance()
+                    this.accessToken = oauth.getAccessToken()
+                    await this.load_posts()
                 } catch (error) {
                     console.error('Login failed:', error)
                     alert('Login failed: ' + error.message)
@@ -135,8 +137,6 @@
                 this.instance = ''
                 this.accessToken = ''
                 this.instanceURL = ''
-                // Load demo posts when logged out
-                this.load_posts()
             },
 
             async load_posts() {
