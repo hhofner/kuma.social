@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="oauth.js"></script>
+    <script src="fediverse.js"></script>
+</head>
+
+<body>
+    <header>
+        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjqZzYkHnbzjB49RBf2rLJj1qkmQwopmpAhRfUkmi_zGKVIoARVlH6gf1dGoJ5btABcpNFJ3kjhgB-he7Cm9Q5AK0Ioz-k8vPer7o1z9CTQw7zlCFF4tLEvOwA204JupPD0aI5H78_nUF4/s1600/animal_dance_bear.png" width=100 />
+        <h1 x-data="{ message: 'kuma.social' }" x-text="message"></h1>
+    </header>
+    <section x-data="timeline">
+        <h2>Timeline</h2>
+        <div x-show="logged_in">
+            <div style="margin-bottom: 20px;">
+                <strong>Logged in to: <span x-text="instance"></span></strong>
+                <button @click="logout" style="margin-left: 10px;">Logout</button>
+            </div>
+            <template x-for="post in posts">
+                <div>
+                    <article style="border: 1px solid #ccc; padding: 10px; margin: 10px 0; display: flex; gap: 12px;">
+                        <div style="flex-shrink: 0;">
+                            <img :src="post.avatar" :alt="post.author + ' avatar'" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;" />
+                        </div>
+                        <div style="flex-grow: 1;">
+                            <div style="margin-bottom: 8px;">
+                                <strong x-text="post.author"></strong>
+                                <small x-text="post.username" style="color: #666; margin-left: 8px;"></small>
+                            </div>
+                            <div x-html="post.content"></div>
+                            <div x-show="post.media_attachments && post.media_attachments.length > 0" style="margin-top: 12px;">
+                                <template x-for="media in post.media_attachments">
+                                    <div x-show="media.type === 'image'" style="margin-bottom: 8px;">
+                                        <img :src="media.url" :alt="media.description || 'Attached image'"
+                                             style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #ddd;"
+                                             loading="lazy" />
+                                    </div>
+                                </template>
+                            </div>
+                            <small x-text="post.created_at" style="color: #888; margin-top: 8px; display: block;"></small>
+                        </div>
+                    </article>
+                </div>
+            </template>
+            <p x-show="posts.length === 0 && !loading">
+                No posts available!
+            </p>
+            <p x-show="loading">Loading...</p>
+            <button @click="load_posts" x-show="!loading">Load More</button>
+        </div>
+        <div x-show="!logged_in">
+            <h3>Log in to your Mastodon instance</h3>
+            <div>
+                <label>
+                    Instance domain:
+                    <input type="text" x-model="instanceURL" placeholder="mastodon.social" style="margin: 5px; padding: 5px;" />
+                </label>
+                <button @click="log_in" :disabled="!instanceURL.trim()">
+                    Continue with <span x-text="instanceURL || 'instance'"></span>
+                </button>
+            </div>
+            <p><small>e.g. "mastodon.social", "mas.to", "fosstodon.org"</small></p>
+        </div>
+    </section>
+</body>
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('timeline', () => ({
+            posts: [],
+            logged_in: false,
+            loading: false,
+            instanceURL: '',
+            instance: '',
+            accessToken: '',
+
+            init() {
+                // Check if already logged in
+                this.logged_in = oauth.isLoggedIn()
+                if (this.logged_in) {
+                    this.instance = oauth.getCurrentInstance()
+                    this.accessToken = oauth.getAccessToken()
+                    this.load_posts()
+                } else {
+                    // Check for OAuth callback
+                    this.handleOAuthCallback()
+                }
+            },
+
+            async handleOAuthCallback() {
+                try {
+                    const result = await oauth.handleCallback()
+                    if (result) {
+                        this.logged_in = true
+                        this.instance = result.instanceURL
+                        this.accessToken = result.accessToken
+                        await this.load_posts()
+                    }
+                } catch (error) {
+                    console.error('OAuth callback failed:', error)
+                    alert('Login failed: ' + error.message)
+                }
+            },
+
+            async log_in() {
+                if (!this.instanceURL.trim()) return
+                try {
+                    await oauth.loginToInstance(this.instanceURL.trim())
+                } catch (error) {
+                    console.error('Login failed:', error)
+                    alert('Login failed: ' + error.message)
+                }
+            },
+
+            logout() {
+                oauth.logout()
+                this.logged_in = false
+                this.posts = []
+                this.instance = ''
+                this.accessToken = ''
+                this.instanceURL = ''
+            },
+
+            async load_posts() {
+                this.loading = true
+                try {
+                    if (this.logged_in && this.accessToken) {
+                        // Load real posts from the API
+                        const newPosts = await fediverse.load_posts_from_api(this.instance, this.accessToken, {
+                            limit: 10,
+                            offset: this.posts.length
+                        })
+                        this.posts = [...this.posts, ...newPosts]
+                    } else {
+                        // Fallback to mock data
+                        const newPosts = await fediverse.load_posts('mastodon', {
+                            limit: 10,
+                            offset: this.posts.length
+                        })
+                        this.posts = [...this.posts, ...newPosts]
+                    }
+                    console.log(this.posts)
+                } catch (error) {
+                    console.error('Failed to load posts:', error)
+                    alert('Failed to load posts: ' + error.message)
+                } finally {
+                    this.loading = false
+                }
+            }
+        }))
+    })
+</script>
+
+</html>
