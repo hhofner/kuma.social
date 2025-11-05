@@ -32,14 +32,56 @@
         <div x-show="logged_in">
             <template x-for="post in posts">
                 <div>
-                    <article style="border-bottom: 1px solid #ccc; padding: 10px; margin: 10px 0; display: flex; gap: 12px;">
-                        <div style="flex-shrink: 0;">
-                            <img :src="post.avatar" :alt="post.author + ' avatar'" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;" />
+                    <!-- Toot Package -->
+                    <article x-show="post.isPackage" class="package-post">
+                        <div class="package-header">
+                            <div style="flex-shrink: 0;">
+                                <img :src="post.avatar" :alt="post.author + ' avatar'" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;" />
+                            </div>
+                            <div style="flex-grow: 1;">
+                                <div style="margin-bottom: 8px;">
+                                    <strong x-text="post.author"></strong>
+                                    <small x-text="post.username" style="color: #666; margin-left: 8px;"></small>
+                                    <span class="package-badge">📦 PACKAGE</span>
+                                </div>
+                                <div class="package-title" x-text="post.packageInfo?.title"></div>
+                                <div class="package-meta">
+                                    <span x-text="post.packageInfo?.count + ' toots'"></span>
+                                    <span>•</span>
+                                    <span x-text="post.created_at"></span>
+                                </div>
+                            </div>
                         </div>
-                        <div style="flex-grow: 1;">
-                            <div style="margin-bottom: 8px;">
-                                <strong x-text="post.author"></strong>
-                                <small x-text="post.username" style="color: #666; margin-left: 8px;"></small>
+                        <div class="package-preview">
+                            Package content will go here...
+                        </div>
+                        <div class="post-actions">
+                            <button @click="toggleStar(post)" class="action-button" :class="{ starred: post.starred }">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 56 56">
+                                    <path fill="currentColor" d="M33.344 54.414H36.6c2.93 0 5.461-.187 7.126-.586c3.234-.797 5.25-3.047 5.25-5.93a5.8 5.8 0 0 0-.258-1.687c1.617-1.172 2.53-2.977 2.53-4.922c0-.96-.187-1.898-.538-2.672c1.078-1.101 1.734-2.719 1.734-4.43c0-1.101-.28-2.273-.773-3.117c.68-.96 1.055-2.25 1.055-3.68c0-3.492-2.72-6.257-6.211-6.257h-8.86c-.562 0-.937-.258-.937-.727c0-2.554 3.984-8.484 3.984-13.242c0-3.234-2.25-5.578-5.367-5.578c-2.297 0-3.844 1.195-5.367 4.102c-2.86 5.484-6.235 10.336-11.813 17.132h-4.453c-5.789 0-10.43 6.54-10.43 14.532c0 7.898 5.11 14.46 11.32 14.46h7.735c3.094 1.618 6.844 2.602 11.016 2.602m3.28-3.539l-3.257-.047c-9.82-.07-16.476-5.625-16.476-13.594c0-5.062 1.125-8.297 4.312-12.562c3.54-4.711 8.414-10.36 11.93-17.367c.937-1.875 1.43-2.18 2.203-2.18c1.148 0 1.828.727 1.828 2.04c0 3.796-3.984 9.562-3.984 13.241c0 2.649 2.203 4.266 4.992 4.266h8.344c1.547 0 2.672 1.172 2.672 2.719c0 1.125-.352 1.851-1.266 2.742c-.234.234-.352.469-.352.726c0 .188.07.399.235.586c.773 1.125 1.101 1.828 1.101 2.742c0 1.126-.539 2.063-1.594 2.883c-.445.328-.68.703-.68 1.102c0 .14.024.305.118.469c.68 1.289.96 1.804.96 2.648c0 1.266-.796 2.227-2.483 3.094c-.352.187-.563.469-.563.82c0 .14.047.281.117.445c.586 1.43.656 1.664.656 2.25c0 1.149-.843 2.063-2.554 2.485c-1.383.351-3.586.515-6.258.492m-22.03-2.602c-4.149 0-7.782-4.992-7.782-10.921c0-6.047 3.258-10.993 6.891-10.993h2.156c-1.758 3.282-2.508 6.727-2.508 10.805c0 4.406 1.594 8.203 4.43 11.11Z"/>
+                                </svg>
+                                <span x-text="post.favourites_count || 0"></span>
+                            </button>
+                            <button @click="toggleBoost(post)" class="action-button" :class="{ boosted: post.boosted }">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 56 56">
+                                    <path fill="currentColor" d="M47.88 4.863a2 2 0 0 1 1.651 2.296Q48.204 15.294 46 20.547q-2 4.767-6.778 11.267l-.783 1.051l-.405.534a11 11 0 0 0-2.2 5.604Q35.418 43.3 34 45.154q-5.12 5.643-9.514 7.369a1 1 0 0 1-1.362-1.014l.765-9.175a1 1 0 0 0-1.086-1.08q-2.387.215-4.803-1.899q-2.128-1.861-2.25-3.755l-.009-.223a1 1 0 0 0-1.263-.962l-7.466 2.036a1 1 0 0 1-1.178-1.37l.398-.89l.387-.849l.376-.807l.366-.765l.354-.724l.173-.346l.338-.661l.326-.62l.16-.294l.31-.556l.3-.515q.22-.37.428-.694l.272-.41q.533-.78.978-1.225q1.659-1.66 6.483-3.062a10 10 0 0 0 4.402-2.656q.45-.467.892-.914l.874-.876a90 90 0 0 1 2.102-2.018l.809-.74l.79-.7q3.122-2.724 5.648-4.205q1.358-.795 3.156-1.62l.821-.368l.427-.185l.887-.372q.454-.187.93-.375l.975-.378l1.017-.38l1.062-.384l1.105-.386l1.148-.39l.591-.195l1.214-.394l.624-.197a2 2 0 0 1 .923-.067M15 39q.551.002 1.069.114q-1.182.572-1.495 3.994l-.025.303a1 1 0 0 0 1.08 1.074q3.669-.31 4.258-1.547Q20 43.453 20 44q0 2.76-4 4l-4.307.434a1 1 0 0 1-1.096-1.087L11 43q1.24-4 4-4M44.989 9.783l-.548.188l-1.06.373q-.519.186-1.015.37l-.97.365q-1.418.546-2.631 1.07l-.785.349a32 32 0 0 0-2.957 1.506c-2.314 1.357-5.197 3.724-8.592 7.09l-.825.826q-.417.422-.844.866a14 14 0 0 1-6.162 3.718c-1.419.413-2.57.831-3.441 1.243c-.698.329-1.143.62-1.33.806q-.26.26-.64.838l-.225.356l-.244.407l-.129.222l-.27.481l1.105-.301a5 5 0 0 1 6.315 4.809l.003.011l.043.08l.064.091l.098.122l.064.073l.159.17l.205.2q.115.108.257.233c.788.69 1.332.93 1.728.93l.083-.004a5 5 0 0 1 5.43 5.395l-.264 3.174a38 38 0 0 0 3.279-3.212c.381-.588.762-1.943.963-4.013a15 15 0 0 1 3-7.64q1.167-1.53 2.176-2.958l.655-.939c2.126-3.092 3.668-5.792 4.627-8.078c1.04-2.477 1.936-5.553 2.678-9.217M35.5 16a4.5 4.5 0 1 1 0 9a4.5 4.5 0 0 1 0-9"/>
+                                </svg>
+                                <span x-text="post.reblogs_count || 0"></span>
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- Regular Toot -->
+                    <article x-show="!post.isPackage" style="border-bottom: 1px solid #ccc; padding: 10px; margin: 10px 0; display: flex; gap: 12px;">
+                        <div style="flex-shrink: 0;">
+                        </div>
+                        <div>
+                            <div style="display: flex; align-items: flex-end; gap: 8px; padding-bottom: 8px;">
+                                <img :src="post.avatar" :alt="post.author + ' avatar'" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;" />
+                                <div style="margin-bottom: 8px;">
+                                    <strong x-text="post.author"></strong>
+                                    <small x-text="post.username" style="color: #666; margin-left: 8px;"></small>
+                                </div>
                             </div>
                             <div x-html="post.content"></div>
                             <div x-show="post.media_attachments && post.media_attachments.length > 0" style="margin-top: 12px;">
@@ -52,6 +94,20 @@
                                 </template>
                             </div>
                             <small x-text="post.created_at" style="color: #888; margin-top: 8px; display: block;"></small>
+                            <div class="post-actions">
+                                <button @click="toggleStar(post)" class="action-button" :class="{ starred: post.starred }">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 56 56">
+                                        <path fill="currentColor" d="M33.344 54.414H36.6c2.93 0 5.461-.187 7.126-.586c3.234-.797 5.25-3.047 5.25-5.93a5.8 5.8 0 0 0-.258-1.687c1.617-1.172 2.53-2.977 2.53-4.922c0-.96-.187-1.898-.538-2.672c1.078-1.101 1.734-2.719 1.734-4.43c0-1.101-.28-2.273-.773-3.117c.68-.96 1.055-2.25 1.055-3.68c0-3.492-2.72-6.257-6.211-6.257h-8.86c-.562 0-.937-.258-.937-.727c0-2.554 3.984-8.484 3.984-13.242c0-3.234-2.25-5.578-5.367-5.578c-2.297 0-3.844 1.195-5.367 4.102c-2.86 5.484-6.235 10.336-11.813 17.132h-4.453c-5.789 0-10.43 6.54-10.43 14.532c0 7.898 5.11 14.46 11.32 14.46h7.735c3.094 1.618 6.844 2.602 11.016 2.602m3.28-3.539l-3.257-.047c-9.82-.07-16.476-5.625-16.476-13.594c0-5.062 1.125-8.297 4.312-12.562c3.54-4.711 8.414-10.36 11.93-17.367c.937-1.875 1.43-2.18 2.203-2.18c1.148 0 1.828.727 1.828 2.04c0 3.796-3.984 9.562-3.984 13.241c0 2.649 2.203 4.266 4.992 4.266h8.344c1.547 0 2.672 1.172 2.672 2.719c0 1.125-.352 1.851-1.266 2.742c-.234.234-.352.469-.352.726c0 .188.07.399.235.586c.773 1.125 1.101 1.828 1.101 2.742c0 1.126-.539 2.063-1.594 2.883c-.445.328-.68.703-.68 1.102c0 .14.024.305.118.469c.68 1.289.96 1.804.96 2.648c0 1.266-.796 2.227-2.483 3.094c-.352.187-.563.469-.563.82c0 .14.047.281.117.445c.586 1.43.656 1.664.656 2.25c0 1.149-.843 2.063-2.554 2.485c-1.383.351-3.586.515-6.258.492m-22.03-2.602c-4.149 0-7.782-4.992-7.782-10.921c0-6.047 3.258-10.993 6.891-10.993h2.156c-1.758 3.282-2.508 6.727-2.508 10.805c0 4.406 1.594 8.203 4.43 11.11Z"/>
+                                    </svg>
+                                    <span x-text="post.favourites_count || 0"></span>
+                                </button>
+                                <button @click="toggleBoost(post)" class="action-button" :class="{ boosted: post.boosted }">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 56 56">
+                                        <path fill="currentColor" d="M47.88 4.863a2 2 0 0 1 1.651 2.296Q48.204 15.294 46 20.547q-2 4.767-6.778 11.267l-.783 1.051l-.405.534a11 11 0 0 0-2.2 5.604Q35.418 43.3 34 45.154q-5.12 5.643-9.514 7.369a1 1 0 0 1-1.362-1.014l.765-9.175a1 1 0 0 0-1.086-1.08q-2.387.215-4.803-1.899q-2.128-1.861-2.25-3.755l-.009-.223a1 1 0 0 0-1.263-.962l-7.466 2.036a1 1 0 0 1-1.178-1.37l.398-.89l.387-.849l.376-.807l.366-.765l.354-.724l.173-.346l.338-.661l.326-.62l.16-.294l.31-.556l.3-.515q.22-.37.428-.694l.272-.41q.533-.78.978-1.225q1.659-1.66 6.483-3.062a10 10 0 0 0 4.402-2.656q.45-.467.892-.914l.874-.876a90 90 0 0 1 2.102-2.018l.809-.74l.79-.7q3.122-2.724 5.648-4.205q1.358-.795 3.156-1.62l.821-.368l.427-.185l.887-.372q.454-.187.93-.375l.975-.378l1.017-.38l1.062-.384l1.105-.386l1.148-.39l.591-.195l1.214-.394l.624-.197a2 2 0 0 1 .923-.067M15 39q.551.002 1.069.114q-1.182.572-1.495 3.994l-.025.303a1 1 0 0 0 1.08 1.074q3.669-.31 4.258-1.547Q20 43.453 20 44q0 2.76-4 4l-4.307.434a1 1 0 0 1-1.096-1.087L11 43q1.24-4 4-4M44.989 9.783l-.548.188l-1.06.373q-.519.186-1.015.37l-.97.365q-1.418.546-2.631 1.07l-.785.349a32 32 0 0 0-2.957 1.506c-2.314 1.357-5.197 3.724-8.592 7.09l-.825.826q-.417.422-.844.866a14 14 0 0 1-6.162 3.718c-1.419.413-2.57.831-3.441 1.243c-.698.329-1.143.62-1.33.806q-.26.26-.64.838l-.225.356l-.244.407l-.129.222l-.27.481l1.105-.301a5 5 0 0 1 6.315 4.809l.003.011l.043.08l.064.091l.098.122l.064.073l.159.17l.205.2q.115.108.257.233c.788.69 1.332.93 1.728.93l.083-.004a5 5 0 0 1 5.43 5.395l-.264 3.174a38 38 0 0 0 3.279-3.212c.381-.588.762-1.943.963-4.013a15 15 0 0 1 3-7.64q1.167-1.53 2.176-2.958l.655-.939c2.126-3.092 3.668-5.792 4.627-8.078c1.04-2.477 1.936-5.553 2.678-9.217M35.5 16a4.5 4.5 0 1 1 0 9a4.5 4.5 0 0 1 0-9"/>
+                                    </svg>
+                                    <span x-text="post.reblogs_count || 0"></span>
+                                </button>
+                            </div>
                         </div>
                     </article>
                 </div>
@@ -163,6 +219,66 @@
                     alert('Failed to load posts: ' + error.message)
                 } finally {
                     this.loading = false
+                }
+            },
+
+            async toggleStar(post) {
+                if (!this.logged_in || !this.accessToken) {
+                    alert('Please log in to star posts')
+                    return
+                }
+
+                try {
+                    const action = post.starred ? 'unfavourite' : 'favourite'
+                    const response = await fetch(`https://${this.instance}/api/v1/statuses/${post.id}/${action}`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.accessToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+
+                    if (response.ok) {
+                        post.starred = !post.starred
+                        if (post.starred) {
+                            post.favourites_count = (post.favourites_count || 0) + 1
+                        } else {
+                            post.favourites_count = Math.max((post.favourites_count || 1) - 1, 0)
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to star/unstar post:', error)
+                    alert('Failed to star post')
+                }
+            },
+
+            async toggleBoost(post) {
+                if (!this.logged_in || !this.accessToken) {
+                    alert('Please log in to boost posts')
+                    return
+                }
+
+                try {
+                    const action = post.boosted ? 'unreblog' : 'reblog'
+                    const response = await fetch(`https://${this.instance}/api/v1/statuses/${post.id}/${action}`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.accessToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+
+                    if (response.ok) {
+                        post.boosted = !post.boosted
+                        if (post.boosted) {
+                            post.reblogs_count = (post.reblogs_count || 0) + 1
+                        } else {
+                            post.reblogs_count = Math.max((post.reblogs_count || 1) - 1, 0)
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to boost/unboost post:', error)
+                    alert('Failed to boost post')
                 }
             }
         }))

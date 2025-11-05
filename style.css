@@ -66,3 +66,91 @@ header {
   border-radius: 8px;
   background: #f9f9f9;
 }
+
+.package-post {
+  border: 2px solid #e3f2fd;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+  background: linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%);
+}
+
+.package-header {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.package-badge {
+  background: #2196f3;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+}
+
+.package-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #1565c0;
+}
+
+.package-meta {
+  font-size: 12px;
+  color: #666;
+}
+
+.package-meta span {
+  margin-right: 4px;
+}
+
+.package-preview {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  font-style: italic;
+  color: #666;
+  border: 1px solid #e0e0e0;
+}
+
+.post-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #eee;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background: #f5f5f5;
+}
+
+.action-button.starred {
+  color: #ffa726;
+}
+
+.action-button.boosted {
+  color: #4caf50;
+}
+
+.action-button svg {
+  width: 18px;
+  height: 18px;
+}
