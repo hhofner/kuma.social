@@ -19,7 +19,10 @@
                 <div>
                     <h1 class="header-title">kuma.social</h1>
                     <div x-show="logged_in" class="header-status">
-                        Connected to <span x-text="instance" class="header-instance"></span>
+                        Connected to
+                        <template x-for="(account, index) in accounts" :key="account.id">,
+                            <span x-text="account.instance" :class="'domain-item domain-' + (index % 4 + 2)"></span>
+                        </template>
                         <div class="add-account-container">
                             <button @click="showAddAccount = true" class="add-account-button">+ Add account</button>
                         </div>
@@ -30,6 +33,31 @@
                 <button @click="logout" class="logout-button">Logout</button>
             </div>
         </header>
+
+        <div x-show="showAddAccount" x-transition.opacity class="modal-overlay" @click="showAddAccount = false">
+            <div class="modal-popup" @click.stop>
+                <div class="modal-header">
+                    <h3>Add New Account</h3>
+                    <button @click="showAddAccount = false" class="modal-close">×</button>
+                </div>
+                <div class="modal-content">
+                    <div>
+                        <label>
+                            Instance domain:
+                            <input type="text" x-model="newAccountInstanceURL" placeholder="mastodon.social" class="modal-input" />
+                        </label>
+                        <button @click="addNewAccount" :disabled="!newAccountInstanceURL.trim()" class="modal-connect-button">
+                            Connect to <span x-text="newAccountInstanceURL || 'instance'"></span>
+                        </button>
+                    </div>
+                    <p class="modal-examples"><small>e.g. "mastodon.social", "mas.to", "fosstodon.org"</small></p>
+                </div>
+                <div class="modal-actions">
+                    <button @click="showAddAccount = false" class="modal-cancel-button">Cancel</button>
+                </div>
+            </div>
+        </div>
+
         <section class="timeline">
         <h2>Timeline</h2>
         <div x-show="logged_in">
@@ -147,19 +175,35 @@
             instance: '',
             accessToken: '',
             showAddAccount: false,
+            newAccountInstanceURL: '',
             accounts: [],
             activeAccountId: null,
 
             init() {
+                const storedAccounts = localStorage.getItem('accounts')
+                if (storedAccounts) {
+                    try {
+                        this.accounts = JSON.parse(storedAccounts)
+                    } catch (e) {
+                        console.error('Failed to parse stored accounts:', e)
+                        this.accounts = []
+                    }
+                }
+
+                // Always check for OAuth callback first (for both login and add account flows)
+                const hasOAuthCode = window.location.search.includes('code=')
+                if (hasOAuthCode) {
+                    this.handleOAuthCallback()
+                }
+
                 // Check if already logged in
                 this.logged_in = oauth.isLoggedIn()
                 if (this.logged_in) {
                     this.instance = oauth.getCurrentInstance()
                     this.accessToken = oauth.getAccessToken()
-                    this.load_posts()
-                } else {
-                    // Check for OAuth callback
-                    this.handleOAuthCallback()
+                    if (!hasOAuthCode) { // Only load posts if we're not processing OAuth
+                        this.load_posts()
+                    }
                 }
             },
 
@@ -167,14 +211,56 @@
                 try {
                     const result = await oauth.handleCallback()
                     if (result) {
-                        this.logged_in = true
-                        this.instance = result.instanceURL
-                        this.accessToken = result.accessToken
-                        await this.load_posts()
+                        // Check if this is an "add account" flow
+                        const isAddingAccount = window.sessionStorage.getItem('addingAccount') === 'true'
+
+                        if (isAddingAccount) {
+                            // Restore existing account state
+                            const existingInstance = window.sessionStorage.getItem('existingInstance')
+                            const existingToken = window.sessionStorage.getItem('existingToken')
+
+                            // Add new account to accounts array
+                            const newAccount = {
+                                id: `${result.instanceURL}_${Date.now()}`,
+                                instance: result.instanceURL,
+                                accessToken: result.accessToken,
+                                displayName: result.instanceURL // Will be improved later with user info
+                            }
+
+                            this.accounts.push(newAccount)
+                            this.saveAccounts()
+
+                            // Restore previous session
+                            this.instance = existingInstance
+                            this.accessToken = existingToken
+
+                            // Clear add account state
+                            window.sessionStorage.removeItem('addingAccount')
+                            window.sessionStorage.removeItem('existingInstance')
+                            window.sessionStorage.removeItem('existingToken')
+
+                            // Close modal and clear form
+                            this.showAddAccount = false
+                            this.newAccountInstanceURL = ''
+
+                            alert(`Successfully added account: ${result.instanceURL}`)
+                        } else {
+                            // Normal login flow
+                            this.logged_in = true
+                            this.instance = result.instanceURL
+                            this.accessToken = result.accessToken
+                            this.posts = []
+                            await this.load_posts()
+                        }
                     }
                 } catch (error) {
                     console.error('OAuth callback failed:', error)
                     alert('Login failed: ' + error.message)
+
+                    // Clear add account state on error
+                    window.sessionStorage.removeItem('addingAccount')
+                    window.sessionStorage.removeItem('existingInstance')
+                    window.sessionStorage.removeItem('existingToken')
                 }
             },
 
@@ -285,6 +371,31 @@
                 } catch (error) {
                     console.error('Failed to boost/unboost post:', error)
                     alert('Failed to boost post')
+                }
+            },
+
+            async addNewAccount() {
+                if (!this.newAccountInstanceURL.trim()) return
+
+                try {
+                    // Store current state indicating this is an "add account" flow
+                    window.sessionStorage.setItem('addingAccount', 'true')
+                    window.sessionStorage.setItem('existingInstance', this.instance)
+                    window.sessionStorage.setItem('existingToken', this.accessToken)
+
+                    // Initiate OAuth flow for new account
+                    await oauth.loginToInstance(this.newAccountInstanceURL.trim())
+                } catch (error) {
+                    console.error('Failed to add account:', error)
+                    alert('Failed to add account: ' + error.message)
+                }
+            },
+
+            saveAccounts() {
+                try {
+                    localStorage.setItem('accounts', JSON.stringify(this.accounts))
+                } catch (e) {
+                    console.error('Failed to save accounts:', e)
                 }
             }
         }))
