@@ -154,3 +154,24 @@ header {
   width: 18px;
   height: 18px;
 }
+
+.add-account-container {
+  margin-top: 6px;
+}
+
+.add-account-button {
+  background: none;
+  border: 1px solid #ddd;
+  color: #666;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-account-button:hover {
+  background: #f0f0f0;
+  border-color: #bbb;
+  color: #333;
+}

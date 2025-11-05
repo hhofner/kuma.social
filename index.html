@@ -20,6 +20,9 @@
                     <h1 class="header-title">kuma.social</h1>
                     <div x-show="logged_in" class="header-status">
                         Connected to <span x-text="instance" class="header-instance"></span>
+                        <div class="add-account-container">
+                            <button @click="showAddAccount = true" class="add-account-button">+ Add account</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -143,6 +146,9 @@
             instanceURL: '',
             instance: '',
             accessToken: '',
+            showAddAccount: false,
+            accounts: [],
+            activeAccountId: null,
 
             init() {
                 // Check if already logged in
